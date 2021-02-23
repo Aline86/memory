@@ -1,32 +1,37 @@
 package sample;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
 import javafx.scene.shape.StrokeType;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.application.Application;
 import javafx.util.Duration;
-import javafx.scene.paint.ImagePattern;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,8 +44,20 @@ public class MemoryPuzzle extends Application {
             "lapin2.jpg", "ourson.jpg", "ourson2.jpg"};
     private String lurl = "";
     private Rectangle tile = null;
-    private Parent createContent() throws MalformedURLException {
+    private Object nbofplayers = null;
+    int nbofplayesconvertion = 0;
+    BorderPane border = new BorderPane();
+
+    GridPane sp = new GridPane();
+    int player = 0;
+    int nbpoints = 0;
+    int pos = 0;
+    final Label lbl = new Label();
+    StackPane sp2 = new StackPane();
+    private Parent createContent(StackPane window, Button button) throws MalformedURLException {
         GridPane root = new GridPane();
+        VBox vbox = new VBox(50);
+
         root.setPrefSize(800, 800);
         List<Tile> tiles = new ArrayList<>();
         Rectangle rectangle;
@@ -70,13 +87,103 @@ public class MemoryPuzzle extends Application {
 
                 }
             }
-        return root;
+
+            sp.setMinWidth(250);
+        for ( int i =1; i < 5; i++ )
+        {
+           // System.out.println(nbofplayesconvertion);
+            StackPane rec = new StackPane();
+            Text t = new Text(250, 150, "Player " + i);
+
+            rec.getChildren().add(t);
+            sp.setConstraints(rec, 0, i);
+            rec.setOpacity(0);
+            sp.getChildren().add(rec);
+
+        }
+      //  Players pl = new Players(nbofplayers);
+     //   sp.getChildren().add(pl);
+
+            border.setRight(sp);
+            border.setCenter(root);
+            border.setTop(button);
+
+        return border;
     }
     @Override
-    public void start(Stage primaryStage) throws Exception
-    {
-        primaryStage.setScene(new Scene(createContent()));
-        primaryStage.show();
+    public void start(Stage primaryStage) throws Exception {
+
+        Button button = new Button();
+        button.setText("Start Playing");
+        StackPane root = new StackPane();
+        button.setOnAction(new EventHandler<ActionEvent>() {
+        VBox vbox = new VBox();
+            @Override
+            public void handle(ActionEvent event) {
+
+                ObservableList<String> options =
+                        FXCollections.observableArrayList(
+                                "1 Player",
+                                "2 Players"
+                        );
+                final ComboBox comboBox = new ComboBox(options);
+
+                StackPane secondaryLayout = new StackPane();
+                secondaryLayout.getChildren().add(comboBox);
+
+                Scene secondScene = new Scene(secondaryLayout, 400, 400);
+
+
+
+                Stage newWindow = new Stage();
+                newWindow.setTitle("Second Stage");
+                newWindow.setScene(secondScene);
+
+                // Set position of second window, related to primary window.
+                newWindow.setX(primaryStage.getX() + 200);
+                newWindow.setY(primaryStage.getY() + 100);
+                comboBox.valueProperty().addListener(new ChangeListener<String>() {
+
+
+                    @Override
+                    public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
+                        Object c = comboBox.getSelectionModel().getSelectedItem();
+                        nbofplayers = c;
+
+                        newWindow.hide();
+
+                        if(nbofplayers != null)
+                        {
+
+                        }
+                        if(nbofplayers.toString() == "1 Player")
+                        {
+                            nbofplayesconvertion = 1;
+                        }
+                        else if (nbofplayers.toString() == "2 Players")
+                        {
+                            nbofplayesconvertion = 2;
+                        }
+                        for ( int i =0; i < nbofplayesconvertion; i++ )
+                        {
+                            System.out.println(nbofplayesconvertion);
+                            StackPane rec = new StackPane();
+                            Text t = new Text(250, 50, "Player" + i);
+                            sp.getChildren().get(i).setOpacity(1);
+
+                        }
+                        player = 1;
+                    }
+                });
+                newWindow.show();
+
+            }
+
+        });
+
+            primaryStage.setScene(new Scene(this.createContent(root, button)));
+            primaryStage.show();
+
 
     }
 
@@ -86,7 +193,6 @@ public class MemoryPuzzle extends Application {
 
         private Rectangle selected = null;
         private boolean bool = false;
-
 
         public Tile(Rectangle img, String url) {
 
@@ -103,8 +209,11 @@ public class MemoryPuzzle extends Application {
             this.setWidth(200);
             this.setHeight(200);
             this.setStyle("-fx-stroke: black; -fx-stroke-width: 3;");
+
             setOnMouseClicked(event ->
             {
+                sp.getChildren().remove(sp2);
+                sp2.getChildren().remove(lbl);
 
                 if(isOpen(img))
                 {
@@ -118,15 +227,38 @@ public class MemoryPuzzle extends Application {
 
                 }else{
                     open(() -> {
+
                     if(!hasSavedValue(lurl, url)){
+                        nbpoints--;
                             close1(tile);
                             close1(img);
+                        //
                         }else{
+
+                        nbpoints++;
+                        int compteur = 0;
+                        if(pos == 0){
+                            compteur++;
+                            lbl.setText("Player" + player + " a " + nbpoints + " points");
+                            sp2.getChildren().add(lbl);
+
+                         //  sp2.setAccessibleText("");
+                            sp.getChildren().add(sp2);
+                            System.out.println(sp2.getChildren());
+                            if(compteur == 8){
+                                System.out.println(img.getParent().getParent().getParent());
+                                img.getParent().getParent().getParent().setOpacity(0);
+                            }
+                        }
+
+
+                        player = 1;
                             open(tile);
                             open(img);
                     }
                     tile = null;
                     lurl = "";
+
                     });
                 }
 
@@ -136,7 +268,13 @@ public class MemoryPuzzle extends Application {
             close(img);
 
         }
-
+      /*  public void replaceText(int start, int end, String text) {
+            // If the replaced text would end up being invalid, then simply
+            // ignore this call!
+            if (text.matches("[0-9]") || text.isEmpty()) {
+                replaceText(start, end, text);
+            }
+        }*/
         public void open(Runnable action)
         {
            //
@@ -151,8 +289,6 @@ public class MemoryPuzzle extends Application {
             FadeTransition ft = new FadeTransition(Duration.seconds(0.5), img);
             ft.setToValue(1);
             ft.play();
-
-
         }
         public void close(Rectangle img)
         {
@@ -179,7 +315,6 @@ public class MemoryPuzzle extends Application {
         }
 
     }
-
 
     public static void main(String[] args) {
         launch(args);
