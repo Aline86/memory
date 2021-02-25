@@ -39,19 +39,29 @@ import java.util.Collections;
 import java.util.List;
 
 import static javafx.scene.text.TextAlignment.CENTER;
-
+/*
+"chat_violet.jpg", "cochon.jpg", "jungle.jpg", "koala.jpg", "poule.jpg", "poule.jpg", "question.jpg", "pingouin.jpg",
+            "abeille.jpg", "chat_violet.jpg", "cochon.jpg", "jungle.jpg", "koala.jpg", "poule.jpg", "poule.jpg", "question.jpg", "pingouin.jpg",
+            "picsou.jpg", "picsou.jpg"
+ */
 public class MemoryPuzzle extends Application {
     // Initialisation avec des variables globales pour toutes les classes
-    private static final int NUM_OF_PAIRS = 8;
-    private static final int NUM_PER_ROW = 4;
+    private int NUM_OF_PAIRS = 0;
+    private int NUM_PER_ROW = 0;
+    private int taille = 0;
+    private int tailleboard = 0;
     private static String images[] = {"chat.jpg", "chat2.jpg", "chien.jpg", "chien2.jpg", "lapin.jpg",
             "lapin2.jpg", "ourson.jpg", "ourson2.jpg", "chat.jpg", "chat2.jpg", "chien.jpg", "chien2.jpg", "lapin.jpg",
-            "lapin2.jpg", "ourson.jpg", "ourson2.jpg"};
+            "lapin2.jpg", "ourson.jpg", "ourson2.jpg", "abeille.jpg",
+            "chat_violet.jpg", "cochon.jpg", "jungle.jpg", "koala.jpg", "poule.jpg", "poule.jpg", "question.jpg", "pingouin.jpg",
+            "abeille.jpg", "chat_violet.jpg", "cochon.jpg", "jungle.jpg", "koala.jpg", "poule.jpg", "question.jpg", "question.jpg", "pingouin.jpg",
+            "picsou.jpg", "picsou.jpg" };
     private String lurl = "";
     private Rectangle tile = null;
     private Object nbofplayers = null;
+    private Object difficulte = null;
     int nbofplayesconvertion = 0;
-    BorderPane root = new BorderPane();
+
     GridPane sp = new GridPane();
     int player1 = 1;
     int player2 = 2;
@@ -68,19 +78,21 @@ public class MemoryPuzzle extends Application {
     int PlayerTwo = 0;
     int begin = 0;
     int coups = 0;
+
     private Parent createContent(BorderPane border, Button button) throws MalformedURLException {
-       ;
+        System.out.println("create");
         GridPane root1 = new GridPane();
         VBox vbox = new VBox(50);
-
-        root1.setPrefSize(800, 800);
+        System.out.println(images.length);
+        root1.setPrefSize(tailleboard, tailleboard);
         List<Tile> tiles = new ArrayList<>();
         Rectangle rectangle;
 
         // Création des tuiles
-        for(int i = 0; i < images.length; i++)
+        for(int i = 0; i < (NUM_PER_ROW*NUM_PER_ROW); i++)
         {
-            rectangle = new Rectangle(200, 200);
+
+            rectangle = new Rectangle(taille, taille);
             String imageURI = new File(images[i]).toURI().toString();
             Tile tile = new Tile(rectangle, imageURI);
             tiles.add(tile);
@@ -90,13 +102,15 @@ public class MemoryPuzzle extends Application {
         // Création du board qui va accueillir les tuiles
         // Insertion des tuiles
         int compteur = 0;
-        for(int j = 0; j < 4; j++)
+        for(int j = 0; j < NUM_PER_ROW; j++)
         {
-            for(int k = 0; k < 4; k++) {
+            for(int k = 0; k < NUM_PER_ROW; k++) {
+                System.out.println(j);
                 Tile tile = tiles.get(compteur);
                 root1.setConstraints(tile, j, k);
                 root1.setGridLinesVisible(true);
                 root1.getChildren().add(tile);
+
                 compteur ++;
             }
         }
@@ -117,6 +131,13 @@ public class MemoryPuzzle extends Application {
             sp.getChildren().add(rec);
 
         }
+       for ( int i =0; i < nbofplayesconvertion; i++ )
+        {
+           // System.out.println(nbofplayesconvertion);
+            StackPane rec = new StackPane();
+            Label t = new Label("Player" + i);
+            sp.getChildren().get(i).setOpacity(1);
+        }
             border.setRight(sp);
             border.setCenter(root1);
             border.setTop(button);
@@ -133,17 +154,14 @@ public class MemoryPuzzle extends Application {
                 reset(primaryStage, button);
             }
         });
-        primaryStage.setScene(new Scene(this.createContent(root, button)));
-
-        primaryStage.show();
-
-        display_combo();
+      //  primaryStage.setScene(new Scene(this.createContent(root, button)));
+        display_combo(primaryStage, button);
 
 
     }
     public void reset(Stage primaryStage, Button button)
     {
-        if(compteurNbPaires == 8){
+        if(compteurNbPaires == NUM_OF_PAIRS){
             //   compteurTours++;
             compteurNbPaires = 0;
             nbpoints = 0;
@@ -178,20 +196,30 @@ public class MemoryPuzzle extends Application {
             }
         }
     }
-    public void display_combo(){
-        begin = 1;
+    public int display_combo(Stage primaryStage, Button button){
+        // Combo 1 pour l'alternance des joueurs
         ObservableList<String> options =
                 FXCollections.observableArrayList(
                         "1 Player",
                         "2 Players"
                 );
 
-        // Création de la combobox
+
         final ComboBox comboBox = new ComboBox(options);
 
-        StackPane secondaryLayout = new StackPane();
-        secondaryLayout.getChildren().add(comboBox);
+        // Combo 2 pour le choix de la difficulté
+        ObservableList<String> options2 =
+                FXCollections.observableArrayList(
+                        "facile",
+                        "difficile"
+                );
 
+        final ComboBox comboBox2 = new ComboBox(options2);
+
+        VBox secondaryLayout = new VBox();
+        secondaryLayout.getChildren().add(comboBox);
+        secondaryLayout.getChildren().add(comboBox2);
+        secondaryLayout.setAlignment(Pos.CENTER);
         Scene secondScene = new Scene(secondaryLayout, 400, 400);
         Stage newWindow = new Stage();
         newWindow.setTitle("Second Stage");
@@ -203,15 +231,44 @@ public class MemoryPuzzle extends Application {
 
                 Object c = comboBox.getSelectionModel().getSelectedItem();
                 nbofplayers = c;
-
-                newWindow.hide();
-                player = 1;
+                nextcombo(comboBox2, newWindow, c, button);
+              //  newWindow.hide();
+            //    player = 1;
                 // Affichichage des joueurs
-                return_players();
+              //  return_players();
 
             }
         });
+
+
         newWindow.show();
+        return 1;
+    }
+    public void nextcombo(ComboBox comboBox2, Stage newWindow, Object c, Button button)
+    {
+        comboBox2.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
+
+                Object d = comboBox2.getSelectionModel().getSelectedItem();
+                difficulte = d;
+
+                newWindow.hide();
+                //    player = 1;
+                // Affichichage des joueurs
+                return_players();
+                Stage primaryStage = new Stage();
+                BorderPane root = new BorderPane();
+                try {
+                    primaryStage.setScene(new Scene(createContent(root, button)));
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
+                primaryStage.show();
+            }
+        });
+
     }
     public void return_players()
     {
@@ -225,13 +282,22 @@ public class MemoryPuzzle extends Application {
         {
             nbofplayesconvertion = 2;
             nbJoueurs = 2;
+            player = 1;
         }
-        for ( int i =0; i < nbofplayesconvertion; i++ )
+
+        if(difficulte.toString() == "facile")
         {
-            System.out.println(nbofplayesconvertion);
-            StackPane rec = new StackPane();
-            Label t = new Label("Player" + i);
-            sp.getChildren().get(i).setOpacity(1);
+            NUM_OF_PAIRS = 8;
+            NUM_PER_ROW = 4;
+            taille = 200;
+            tailleboard = 800;
+        }
+        else if (difficulte.toString() == "difficile")
+        {
+            NUM_OF_PAIRS = 18;
+            NUM_PER_ROW = 6;
+            taille = 100;
+            tailleboard = 600;
         }
     }
     class Tile extends StackPane
@@ -240,7 +306,8 @@ public class MemoryPuzzle extends Application {
         private boolean bool = false;
         public Tile(Rectangle img, String url) {
             // Initialisation de la tuile
-            Image image = new Image(url, 200,200,false,true);
+            Image image = new Image(url, taille,taille,false,true);
+            System.out.println(url);
             ImageView imageView = new ImageView(image);
 
             img.setStroke(Color.BLACK);
@@ -249,19 +316,19 @@ public class MemoryPuzzle extends Application {
 
             setAlignment(Pos.CENTER);
             this.getChildren().add(img);
-            this.setWidth(200);
-            this.setHeight(200);
+            this.setWidth(taille);
+            this.setHeight(taille);
             this.setStyle("-fx-stroke: black; -fx-stroke-width: 3;");
             // Gestion de l'ouverture et du maintien des tuiles si paire trouvée
             setOnMouseClicked(event ->
             {
                 coups++;
-                if(coups == 3)
+                if(coups == 2)
                 {
                     coups = 0;
                     if(nbJoueurs != 1){
                         if(player == 1) {
-                            player = 2;
+                           player = 2;
                             sp.getChildren().get(0).setOpacity(0);
                             sp.getChildren().get(1).setOpacity(1);
                         }
@@ -274,10 +341,10 @@ public class MemoryPuzzle extends Application {
                     }
                 }
 
-                if(begin == 0)
+               /* if(begin == 0)
                 {
                     display_combo();
-                }
+                }*/
                 if(isOpen(img))
                 {
                     return;
@@ -295,7 +362,7 @@ public class MemoryPuzzle extends Application {
 
                         }else{
                         compteurNbPaires++;
-                        if(compteurNbPaires == 8){
+                        if(compteurNbPaires == NUM_OF_PAIRS){
                             nbpoints = 0;
                             saveNbPoints = 0;
                             lbl.setText("");
@@ -303,9 +370,9 @@ public class MemoryPuzzle extends Application {
                             Label lb = new Label();
                             if(nbJoueurs == 2)
                             {
-                                if (PlayerOne == 5) {
+                                if (PlayerOne >= 5) {
                                     lb.setText("Le joueur 1 a gagné");
-                                } else if (PlayerOne == 3) {
+                                } else if (PlayerOne <= 3) {
                                     lb.setText("Le joueur 2 a gagné");
                                 } else {
                                     lb.setText("égalité");
@@ -323,13 +390,14 @@ public class MemoryPuzzle extends Application {
                             newWindow.setScene(secondScene);
                             newWindow.show();
                         }
+
                         else
                         {
                             sp.getChildren().remove(sp2);
                             sp2.getChildren().remove(lbl);
                             if(nbJoueurs == 2)
                             {
-                                if(player == 1){
+                                if(player == 2){
                                     nbpoints++;
                                     lbl.setText("Player " + player1 + " a " + nbpoints + " points \n Player " + player2 + " a " + saveNbPoints + " points");
                                     lbl.setFont(new Font(20));
@@ -340,7 +408,7 @@ public class MemoryPuzzle extends Application {
                                     sp.getChildren().get(0).setOpacity(0);
                                     sp.getChildren().get(1).setOpacity(1);
                                 }
-                                else if(player == 2)
+                                else if(player == 1)
                                 {
                                     saveNbPoints++;
                                     lbl.setText("Player " + player1 + " a " + nbpoints + " points \n Player " + player2 + " a " + saveNbPoints + " points");
