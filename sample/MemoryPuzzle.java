@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import javafx.application.Application;
 import javafx.util.Duration;
 
+import javax.swing.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -62,11 +63,17 @@ public class MemoryPuzzle extends Application {
     final Label lbl = new Label();
     StackPane sp2 = new StackPane();
     int nbJoueurs = 0;
+    int player = 0;
+    int PlayerOne = 0;
+    int PlayerTwo = 0;
+    int begin = 0;
+    int coups = 0;
     private Parent createContent(BorderPane border, Button button) throws MalformedURLException {
-        GridPane root = new GridPane();
+       ;
+        GridPane root1 = new GridPane();
         VBox vbox = new VBox(50);
 
-        root.setPrefSize(800, 800);
+        root1.setPrefSize(800, 800);
         List<Tile> tiles = new ArrayList<>();
         Rectangle rectangle;
 
@@ -87,9 +94,9 @@ public class MemoryPuzzle extends Application {
         {
             for(int k = 0; k < 4; k++) {
                 Tile tile = tiles.get(compteur);
-                root.setConstraints(tile, j, k);
-                root.setGridLinesVisible(true);
-                root.getChildren().add(tile);
+                root1.setConstraints(tile, j, k);
+                root1.setGridLinesVisible(true);
+                root1.getChildren().add(tile);
                 compteur ++;
             }
         }
@@ -99,7 +106,7 @@ public class MemoryPuzzle extends Application {
         for ( int i =1; i < 5; i++ )
         {
             StackPane rec = new StackPane();
-            Text t = new Text(250, 150, "Player " + i);
+            Label t = new Label("Player " + i);
             t.setFont(new Font(25));
 
             rec.getChildren().add(t);
@@ -111,94 +118,104 @@ public class MemoryPuzzle extends Application {
 
         }
             border.setRight(sp);
-            border.setCenter(root);
+            border.setCenter(root1);
             border.setTop(button);
+            border.setAlignment(button, Pos.CENTER);
 
         return border;
     }
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        Button button = new Button();
-        button.setText("Start Playing");
-        // Gestion de la combobox au clic du bouton
+        Button  button = new Button("Reset");
         button.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println(compteurNbPaires);
-                // Si le compteur affiche 8 paires, rafraichissement du board
-                if(compteurNbPaires == 1){
-                    compteurTours++;
-                    compteurNbPaires = 0;
-                    System.out.println(compteurNbPaires);
-                    if(compteurTours == 1){
-                        System.out.println(compteurTours);
-                        lbl.setText("Player 1 : "+nbpoints+" points");
-                        lbl.setFont(new Font(20));
-                        saveNbPoints = nbpoints;
-                    }
-                    else if(compteurTours == 2)
-                    {
-                        System.out.println(compteurTours);
-                        lbl.setText("Player 1 : "+nbpoints+" points and Player 2 : "+saveNbPoints+" points");
-                        lbl.setFont(new Font(15));
-                    }
-                    else if(compteurTours == 3)
-                    {
-                        primaryStage.close();
-                    }
-
-                    BorderPane root = new BorderPane();
-                try {
-
-                    primaryStage.setScene(new Scene(createContent(root, button)));
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-                    primaryStage.show();
-                } else {
-                    ObservableList<String> options =
-                    FXCollections.observableArrayList(
-                            "1 Player",
-                            "2 Players"
-                    );
-
-                    // Création de la combobox
-                    final ComboBox comboBox = new ComboBox(options);
-
-                    StackPane secondaryLayout = new StackPane();
-                    secondaryLayout.getChildren().add(comboBox);
-
-                    Scene secondScene = new Scene(secondaryLayout, 400, 400);
-                    Stage newWindow = new Stage();
-                    newWindow.setTitle("Second Stage");
-                    newWindow.setScene(secondScene);
-                    // Set position of second window, related to primary window.
-                    newWindow.setX(primaryStage.getX() + 200);
-                    newWindow.setY(primaryStage.getY() + 100);
-                    // Récupération de la valeur sélectionnée dans la comboBox
-                    comboBox.valueProperty().addListener(new ChangeListener<String>() {
-                        @Override
-                        public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
-
-                            Object c = comboBox.getSelectionModel().getSelectedItem();
-                            nbofplayers = c;
-
-                            newWindow.hide();
-                            // Affichichage des joueurs
-                            return_players();
-
-                        }
-                    });
-                    newWindow.show();
-                }
+            @Override public void handle(ActionEvent e) {
+                reset(primaryStage, button);
             }
         });
-            primaryStage.setScene(new Scene(this.createContent(root, button)));
+        primaryStage.setScene(new Scene(this.createContent(root, button)));
+
+        primaryStage.show();
+
+        display_combo();
+
+
+    }
+    public void reset(Stage primaryStage, Button button)
+    {
+        if(compteurNbPaires == 8){
+            //   compteurTours++;
+            compteurNbPaires = 0;
+            nbpoints = 0;
+            saveNbPoints = 0;
+            player = 0;
+            BorderPane root = new BorderPane();
+            try {
+
+                primaryStage.setScene(new Scene(createContent(root, button)));
+            }
+            catch (MalformedURLException e)
+            {
+                e.printStackTrace();
+            }
             primaryStage.show();
+        }
+        else if(compteurNbPaires > 0 && compteurNbPaires < 8) {
+            compteurNbPaires = 0;
+            nbpoints = 0;
+            saveNbPoints = 0;
+            player = 0;
+            nbJoueurs = 0;
+            sp.getChildren().remove(sp2);
+            sp2.getChildren().remove(lbl);
+            sp.getChildren().get(1).setOpacity(0);
+            BorderPane root = new BorderPane();
+            try {
+
+                primaryStage.setScene(new Scene(createContent(root, button)));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void display_combo(){
+        begin = 1;
+        ObservableList<String> options =
+                FXCollections.observableArrayList(
+                        "1 Player",
+                        "2 Players"
+                );
+
+        // Création de la combobox
+        final ComboBox comboBox = new ComboBox(options);
+
+        StackPane secondaryLayout = new StackPane();
+        secondaryLayout.getChildren().add(comboBox);
+
+        Scene secondScene = new Scene(secondaryLayout, 400, 400);
+        Stage newWindow = new Stage();
+        newWindow.setTitle("Second Stage");
+        newWindow.setScene(secondScene);
+        // Récupération de la valeur sélectionnée dans la comboBox
+        comboBox.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
+
+                Object c = comboBox.getSelectionModel().getSelectedItem();
+                nbofplayers = c;
+
+                newWindow.hide();
+                player = 1;
+                // Affichichage des joueurs
+                return_players();
+
+            }
+        });
+        newWindow.show();
     }
     public void return_players()
     {
+
         if(nbofplayers.toString() == "1 Player")
         {
             nbofplayesconvertion = 1;
@@ -213,7 +230,7 @@ public class MemoryPuzzle extends Application {
         {
             System.out.println(nbofplayesconvertion);
             StackPane rec = new StackPane();
-            Text t = new Text(250, 50, "Player" + i);
+            Label t = new Label("Player" + i);
             sp.getChildren().get(i).setOpacity(1);
         }
     }
@@ -238,8 +255,29 @@ public class MemoryPuzzle extends Application {
             // Gestion de l'ouverture et du maintien des tuiles si paire trouvée
             setOnMouseClicked(event ->
             {
-                sp.getChildren().remove(sp2);
-                sp2.getChildren().remove(lbl);
+                coups++;
+                if(coups == 3)
+                {
+                    coups = 0;
+                    if(nbJoueurs != 1){
+                        if(player == 1) {
+                            player = 2;
+                            sp.getChildren().get(0).setOpacity(0);
+                            sp.getChildren().get(1).setOpacity(1);
+                        }
+                        else if(player == 2)
+                        {
+                            player = 1;
+                            sp.getChildren().get(1).setOpacity(0);
+                            sp.getChildren().get(0).setOpacity(1);
+                        }
+                    }
+                }
+
+                if(begin == 0)
+                {
+                    display_combo();
+                }
                 if(isOpen(img))
                 {
                     return;
@@ -251,30 +289,82 @@ public class MemoryPuzzle extends Application {
                     open(() -> {});
                 }else{
                     open(() -> {
-
                     if(!hasSavedValue(lurl, url)){
-                        nbpoints--;
-                            close1(tile);
-                            close1(img);
+                        close1(tile);
+                        close1(img);
+
                         }else{
-                        nbpoints++;
-                        if(pos == 0){
-                            compteurNbPaires++;
-                            if(compteurTours == 0){
+                        compteurNbPaires++;
+                        if(compteurNbPaires == 8){
+                            nbpoints = 0;
+                            saveNbPoints = 0;
+                            lbl.setText("");
+                            StackPane thirdLayout = new StackPane();
+                            Label lb = new Label();
+                            if(nbJoueurs == 2)
+                            {
+                                if (PlayerOne == 5) {
+                                    lb.setText("Le joueur 1 a gagné");
+                                } else if (PlayerOne == 3) {
+                                    lb.setText("Le joueur 2 a gagné");
+                                } else {
+                                    lb.setText("égalité");
+                                }
+                            }
+                            else if (nbJoueurs == 1)
+                            {
+                                lb.setText("gagné");
+                            }
+                            thirdLayout.getChildren().add(lb);
+
+                            Scene secondScene = new Scene(thirdLayout, 400, 400);
+                            Stage newWindow = new Stage();
+                            newWindow.setTitle("Second Stage");
+                            newWindow.setScene(secondScene);
+                            newWindow.show();
+                        }
+                        else
+                        {
+                            sp.getChildren().remove(sp2);
+                            sp2.getChildren().remove(lbl);
+                            if(nbJoueurs == 2)
+                            {
+                                if(player == 1){
+                                    nbpoints++;
+                                    lbl.setText("Player " + player1 + " a " + nbpoints + " points \n Player " + player2 + " a " + saveNbPoints + " points");
+                                    lbl.setFont(new Font(20));
+                                    sp2.getChildren().add(lbl);
+                                    sp.getChildren().add(sp2);
+                                    player = 2;
+                                    PlayerTwo = saveNbPoints;
+                                    sp.getChildren().get(0).setOpacity(0);
+                                    sp.getChildren().get(1).setOpacity(1);
+                                }
+                                else if(player == 2)
+                                {
+                                    saveNbPoints++;
+                                    lbl.setText("Player " + player1 + " a " + nbpoints + " points \n Player " + player2 + " a " + saveNbPoints + " points");
+                                    lbl.setFont(new Font(20));
+                                    sp2.getChildren().add(lbl);
+                                    sp.getChildren().add(sp2);
+                                    sp.getChildren().get(1).setOpacity(0);
+                                    sp.getChildren().get(0).setOpacity(1);
+                                    player = 1;
+                                    PlayerOne = nbpoints;
+                                }
+                            }
+                            else if(nbJoueurs == 1)
+                            {
+                                nbpoints++;
                                 lbl.setText("Player " + player1 + " a " + nbpoints + " points");
                                 lbl.setFont(new Font(20));
                                 sp2.getChildren().add(lbl);
                                 sp.getChildren().add(sp2);
                             }
-                            else if(compteurTours == 1){
-                                lbl.setText("Player " + player2 + " a " + nbpoints + " points");
-                                lbl.setFont(new Font(20));
-                                sp2.getChildren().add(lbl);
-                                sp.getChildren().add(sp2);
-                            }
                         }
-                            open(tile);
-                            open(img);
+
+                        open(tile);
+                        open(img);
                     }
                     tile = null;
                     lurl = "";
